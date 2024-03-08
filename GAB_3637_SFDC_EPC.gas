@@ -1,0 +1,175 @@
+Program.Sub.ScreenSU.Start
+gui.frmData..create
+gui.frmData..caption("Update Job")
+gui.frmData..size(11250,7665)
+gui.frmData..minx(0)
+gui.frmData..miny(0)
+gui.frmData..position(0,0)
+gui.frmData..event(unload,frmdata_unload)
+gui.frmData..alwaysontop(False)
+gui.frmData..fontname("Arial")
+gui.frmData..fontsize(8)
+gui.frmData..forecolor(0)
+gui.frmData..fontstyle(,,,,)
+gui.frmData..BackColor(-2147483633)
+gui.frmData..controlbox(True)
+gui.frmData..maxbutton(True)
+gui.frmData..minbutton(True)
+gui.frmData..mousepointer(0)
+gui.frmData..moveable(True)
+gui.frmData..sizeable(False)
+gui.frmData..ShowInTaskBar(True)
+gui.frmData..titlebar(True)
+gui.frmData.lblPatch.create(label,"Patch",True,1935,255,1,300,400,True,0,Arial,9,-2147483633,0)
+gui.frmData.lblPatch.defaultvalue("")
+gui.frmData.lblPatch.controlgroup(0)
+gui.frmData.lblRemold.create(label,"Remolded",True,1920,255,1,2500,400,True,0,Arial,9,-2147483633,0)
+gui.frmData.lblRemold.defaultvalue("")
+gui.frmData.lblRemold.controlgroup(0)
+gui.frmData.lblNotes.create(label,"Notes",True,1935,255,1,300,1250,True,0,Arial,9,-2147483633,0)
+gui.frmData.lblNotes.defaultvalue("")
+gui.frmData.lblNotes.controlgroup(0)
+gui.frmData.txtPatch.create(textbox,"",True,1800,450,0,300,650,True,0,Arial,9,-2147483643,1)
+gui.frmData.txtPatch.numericonly(1)
+gui.frmData.txtPatch.maxLength(10)
+gui.frmData.txtPatch.defaultvalue("")
+gui.frmData.txtPatch.controlgroup(0)
+gui.frmData.txtRemold.create(textbox,"",True,1800,450,0,2500,650,True,0,Arial,9,-2147483643,1)
+gui.frmData.txtRemold.numericonly(1)
+gui.frmData.txtRemold.maxLength(10)
+gui.frmData.txtRemold.defaultvalue("")
+gui.frmData.txtRemold.controlgroup(0)
+gui.frmData.cmdSave.create(button)
+gui.frmData.cmdSave.caption("Save")
+gui.frmData.cmdSave.visible(True)
+gui.frmData.cmdSave.size(1000,500)
+gui.frmData.cmdSave.zorder(0)
+gui.frmData.cmdSave.position(9600,650)
+gui.frmData.cmdSave.enabled(True)
+gui.frmData.cmdSave.fontname("Arial")
+gui.frmData.cmdSave.fontsize(8)
+gui.frmData.cmdSave.event(click,cmdsave_click)
+gui.frmData.cmdSave.defaultvalue("")
+gui.frmData.cmdSave.controlgroup(0)
+gui.frmData.mltxtNotes.create(textboxm)
+gui.frmData.mltxtNotes.text("")
+gui.frmData.mltxtNotes.visible(True)
+gui.frmData.mltxtNotes.size(10500,5400)
+gui.frmData.mltxtNotes.zorder(0)
+gui.frmData.mltxtNotes.position(300,1500)
+gui.frmData.mltxtNotes.enabled(True)
+gui.frmData.mltxtNotes.alignment(0)
+gui.frmData.mltxtNotes.fontname("Arial")
+gui.frmData.mltxtNotes.fontsize(8)
+gui.frmData.mltxtNotes.BackColor(-2147483643)
+gui.frmData.mltxtNotes.defaultvalue("")
+gui.frmData.mltxtNotes.controlgroup(0)
+gui.frmData.txtPatch.tabstop(True)
+gui.frmData.txtPatch.tabindex(1)
+gui.frmData.txtRemold.tabstop(True)
+gui.frmData.txtRemold.tabindex(2)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Created by: A. Valdez
+'Customer: H.J.
+'Hooks:
+'15840-OLS003-POPULATE
+'15860-OLS003-SCRIPT2
+
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	F.Intrinsic.Control.Case(15840)
+		V.Passed.000049.Set("EPC")
+	F.Intrinsic.Control.Case(15860)
+		Gui.frmData..Show
+F.Intrinsic.Control.EndSelect
+Program.Sub.Main.End
+
+program.sub.cmdsave_click.start
+V.Local.sDateSeq.Declare(String)
+V.Local.iRet.Declare(Long)
+V.Local.sSeqKey.Declare(String)
+V.Local.iSeqKey.Declare(Long)
+V.Local.sSql.Declare(String)
+
+F.Intrinsic.String.Format(V.Ambient.Date,"YYMMDD",V.Local.sDateSeq)
+
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+F.Intrinsic.Control.If(V.Screen.frmData!txtPatch.Text,=,"")
+	F.Intrinsic.UI.Msgbox("No Patch number Entered.","Validation")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.ElseIf(V.Screen.frmData!txtRemold.text,=,"")
+	F.Intrinsic.UI.Msgbox("No Remolded number Entered.","Validation")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.ElseIf(V.Screen.frmData!mltxtNotes.Text,=,"")
+	F.Intrinsic.UI.Msgbox("No Notes Entered. Do you want to continue with the save?","Validation",4,V.Local.iRet)
+	F.Intrinsic.Control.If(V.Local.iRet,=,6)
+		F.ODBC.Connection!con.OpenRecordsetRW("rstSave","SELECT * FROM GAB_3637_SFDC_EPC;")
+			F.ODBC.con!rstSave.AddNew
+				F.ODBC.con!rstSave.Set!JOB(V.Passed.009990)
+				F.ODBC.con!rstSave.Set!SUFFIX(V.Passed.009991)
+				F.ODBC.con!rstSave.Set!SEQ(V.Passed.009992)
+				F.ODBC.con!rstSave.Set!DATE_SEQUENCE(V.Local.sDateSeq)
+				F.ODBC.con!rstSave.Set!EMPL(V.Passed.009993)
+				F.ODBC.con!rstSave.Set!EMPLOYEE(V.Passed.009994)
+				F.ODBC.con!rstSave.Set!PATCH(V.Screen.frmData!txtPatch.Text)
+				F.ODBC.con!rstSave.Set!REMOLDED(V.Screen.frmData!txtRemold.Text)
+				F.ODBC.con!rstSave.Set!NOTES(V.Screen.frmData!mltxtNotes.Text)
+				F.Intrinsic.String.Build("Select Top 1 Sequence_Key From V_Job_Detail Where Job = '{0}' and Suffix = '{1}' and Seq = '{2}' and Date_Sequence = '{3}' Order By Sequence_Key Desc;",V.Passed.009990,V.Passed.009991,V.Passed.009992,V.Ambient.Date.PervasiveDate,V.Local.sSql)
+				F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSql,V.Local.sSeqKey)
+				F.Intrinsic.Control.If(V.Local.sSeqKey,=,"")
+					V.Local.sSeqKey.Set("0000")
+				F.Intrinsic.Control.Else
+					F.Intrinsic.Math.Add(V.Local.sSeqKey.Long,1,V.Local.iSeqKey)
+					F.Intrinsic.String.LPad(V.Local.iSeqKey,"0",4,V.Local.sSeqKey)
+				F.Intrinsic.Control.EndIf
+				F.ODBC.con!rstSave.Set!SEQUENCE_KEY(V.Local.sSeqKey)
+			F.ODBC.con!rstSave.Update
+		F.ODBC.con!rstSave.Close
+		F.ODBC.Connection!con.Close
+		F.Intrinsic.UI.Msgbox("Data Saved","Save")
+		F.Intrinsic.Control.CallSub(Frmdata_unload)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Else
+	F.ODBC.Connection!con.OpenRecordsetRW("rstSave","SELECT * FROM GAB_3637_SFDC_EPC;")
+		F.ODBC.con!rstSave.AddNew
+			F.ODBC.con!rstSave.Set!JOB(V.Passed.009990)
+			F.ODBC.con!rstSave.Set!SUFFIX(V.Passed.009991)
+			F.ODBC.con!rstSave.Set!SEQ(V.Passed.009992)
+			F.ODBC.con!rstSave.Set!DATE_SEQUENCE(V.Local.sDateSeq)
+			F.ODBC.con!rstSave.Set!EMPL(V.Passed.009993)
+			F.ODBC.con!rstSave.Set!EMPLOYEE(V.Passed.009994)
+			F.ODBC.con!rstSave.Set!PATCH(V.Screen.frmData!txtPatch.Text)
+			F.ODBC.con!rstSave.Set!REMOLDED(V.Screen.frmData!txtRemold.Text)
+			F.ODBC.con!rstSave.Set!NOTES(V.Screen.frmData!mltxtNotes.Text)
+			F.Intrinsic.String.Build("Select Top 1 Sequence_Key From V_Job_Detail Where Job = '{0}' and Suffix = '{1}' and Seq = '{2}' and Date_Sequence = '{3}' Order By Sequence_Key Desc;",V.Passed.009990,V.Passed.009991,V.Passed.009992,V.Ambient.Date.PervasiveDate,V.Local.sSql)
+			F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSql,V.Local.sSeqKey)
+			F.Intrinsic.Control.If(V.Local.sSeqKey,=,"")
+				V.Local.sSeqKey.Set("0000")
+			F.Intrinsic.Control.Else
+				F.Intrinsic.Math.Add(V.Local.sSeqKey.Long,1,V.Local.iSeqKey)
+				F.Intrinsic.String.LPad(V.Local.iSeqKey,"0",4,V.Local.sSeqKey)
+			F.Intrinsic.Control.EndIf
+			F.ODBC.con!rstSave.Set!SEQUENCE_KEY(V.Local.sSeqKey)
+		F.ODBC.con!rstSave.Update
+	F.ODBC.con!rstSave.Close
+	F.ODBC.Connection!con.Close
+	F.Intrinsic.UI.Msgbox("Data Saved","Save")
+	F.Intrinsic.Control.CallSub(Frmdata_unload)
+F.Intrinsic.Control.EndIf
+program.sub.cmdsave_click.End
+
+program.sub.frmdata_unload.start
+'Close form
+F.Intrinsic.Control.End 
+program.sub.frmdata_unload.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$$}$12:00:00 AM$}$False
+Program.Sub.Comments.End
